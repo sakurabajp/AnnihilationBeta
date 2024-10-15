@@ -2,6 +2,9 @@ package net.cherryleaves.annihilationbeta3;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -16,11 +19,24 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
+
+    public BossBar bossBar;
+    public int time;
+
+    int RedNexus = 75;
+    int BlueNexus = 75;
+    int YellowNexus = 75;
+    int GreenNexus = 75;
 
     @Override
     public void onEnable() {
@@ -28,11 +44,16 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
         Bukkit.getServer().getPluginManager().registerEvents(new GUI(), this);
         CreateTeam();
         Objects.requireNonNull(getCommand("anni")).setExecutor(this);
+        Objects.requireNonNull(getCommand("nexus")).setExecutor(this);
+        setupBossBar();
         super.onEnable();
     }
 
     @Override
     public void onDisable() {
+        if (bossBar != null) {
+            bossBar.removeAll();
+        }
         super.onDisable();
     }
 
@@ -50,14 +71,69 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
                 return true;
             }
-            StartAnni();
+            StartAnniScoreBoard();
+            startTimer();
+        }
+        else if (command.getName().equalsIgnoreCase("nexus")) {
+            if (!(sender instanceof Player) || !sender.isOp()) {
+                sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
+                return true;
+            }
+            if (args.length == 1) {
+                sender.sendMessage("数値を入力してください");
+                return false;
+            }
+            if (args.length >= 2) {
+                String TeamNexus = args[0];  // 1番目の引数
+                try {
+                    Integer.parseInt(args[1]); {
+                    }
+                }
+                catch (NumberFormatException e) {
+                    sender.sendMessage("２つ目の引数に整数以外を打たないでください");
+                }
+                int score = Integer.parseInt(args[1]);  // 2番目の引数
+                if(Objects.equals(TeamNexus, "Red")) {RedNexus = score; }
+                else if(Objects.equals(TeamNexus, "Blue")) {BlueNexus = score;}
+                else if(Objects.equals(TeamNexus, "Yellow")) {YellowNexus = score;}
+                else if(Objects.equals(TeamNexus, "Green")) {GreenNexus = score;}
+                else{
+                    sender.sendMessage("1つめの引数にRed, Blue, Yellow, Green, 以外の文字列を打たないでください");
+                    return false;
+                }
+                sender.sendMessage(TeamNexus + "のスコアを" + score + "に設定します。");
+                StartAnni();
+                StartAnniScoreBoard();
+            }
         }
         return false;
+    }
+
+    @Nullable
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        if (command.getName().equalsIgnoreCase("nexus")) {
+            List<String> completions = new ArrayList<>();
+            // コマンド名をチェック
+            // 最初の引数の候補を提供
+            if (args.length == 1) {
+                completions.add("Red");
+                completions.add("Blue");
+                completions.add("Yellow");
+                completions.add("Green");
+            }
+            return completions;
+        }
+        return null;
     }
 
     @EventHandler
     public void onPlayerJoinEvent(PlayerJoinEvent e){
         Player p = e.getPlayer();
+        if(time > 0) {
+            StartAnniScoreBoard();
+            bossBar.addPlayer(p);
+        }
         p.teleport(new Location(p.getWorld(), 5000.5, 4.0, 5000.5, 90, 0));
         e.setJoinMessage(null);
         p.sendMessage(ChatColor.GREEN + "Welcome back " + ChatColor.YELLOW + p.getDisplayName() + ChatColor.GREEN + ", You are currently the rank of...");
@@ -192,10 +268,11 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
     String none = "";
 
     public void StartAnni(){
-        new Nexus().RedNexus = 75;
-        new Nexus().BlueNexus = 75;
-        new Nexus().YellowNexus = 75;
-        new Nexus().GreenNexus = 75;
+        ScoreboardManager managerTime = Bukkit.getScoreboardManager();
+        Scoreboard boardTime = Objects.requireNonNull(managerTime).getNewScoreboard();
+    }
+
+    public void StartAnniScoreBoard(){
         ScoreboardManager managerTime = Bukkit.getScoreboardManager();
         Scoreboard boardTime = Objects.requireNonNull(managerTime).getNewScoreboard();
         Objective objectiveT = boardTime.registerNewObjective("NexusHP", "dummy", ChatColor.RED + " ANNI" + ChatColor.YELLOW + "HI" + ChatColor.BLUE + "LATI" + ChatColor.GREEN + "ON ");
@@ -206,13 +283,13 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
         score7.setScore(7);
         Score score6 = Objects.requireNonNull(objectiveT).getScore(ChatColor.DARK_GREEN + none);
         score6.setScore(6);
-        Score score5 = Objects.requireNonNull(objectiveT).getScore(ChatColor.RED + "Red Nexus: " + ChatColor.AQUA + new Nexus().RedNexus);
+        Score score5 = Objects.requireNonNull(objectiveT).getScore(ChatColor.RED + "Red Nexus: " + ChatColor.AQUA + RedNexus);
         score5.setScore(5);
-        Score score4 = Objects.requireNonNull(objectiveT).getScore(ChatColor.BLUE + "Blue Nexus: " + ChatColor.AQUA + new Nexus().BlueNexus);
+        Score score4 = Objects.requireNonNull(objectiveT).getScore(ChatColor.BLUE + "Blue Nexus: " + ChatColor.AQUA + BlueNexus);
         score4.setScore(4);
-        Score score3 = Objects.requireNonNull(objectiveT).getScore(ChatColor.YELLOW + "Yellow Nexus: " + ChatColor.AQUA + new Nexus().YellowNexus);
+        Score score3 = Objects.requireNonNull(objectiveT).getScore(ChatColor.YELLOW + "Yellow Nexus: " + ChatColor.AQUA + YellowNexus);
         score3.setScore(3);
-        Score score2 = Objects.requireNonNull(objectiveT).getScore(ChatColor.GREEN + "Green Nexus: " + ChatColor.AQUA + new Nexus().GreenNexus);
+        Score score2 = Objects.requireNonNull(objectiveT).getScore(ChatColor.GREEN + "Green Nexus: " + ChatColor.AQUA + GreenNexus);
         score2.setScore(2);
         Score score1 = Objects.requireNonNull(objectiveT).getScore(ChatColor.RED + none);
         score1.setScore(1);
@@ -221,5 +298,38 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.setScoreboard(boardTime);
         }
+    }
+
+    public void setupBossBar() {
+        // ボスバーを作成（タイトル、色、スタイルを設定）
+        bossBar = Bukkit.createBossBar(ChatColor.GREEN + "Timer: 0s", BarColor.BLUE, BarStyle.SOLID);
+        // 全プレイヤーにボスバーを表示
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            bossBar.addPlayer(player);
+        }
+    }
+
+    public void startTimer() {
+        // 初期時間を0に設定
+        time = 0;
+        // 1秒ごとに実行されるタスク
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                // 時間を1秒増加
+                time++;
+                // ボスバーのタイトルを更新（経過秒数を表示）
+                bossBar.setTitle(ChatColor.GREEN + "Timer: " + time + "s");
+                // 全プレイヤーにボスバーを表示（サーバーに新しいプレイヤーが参加した場合も更新）
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (!bossBar.getPlayers().contains(player)) {
+                        bossBar.addPlayer(player);
+                    }
+                }
+                // オプション: ボスバーの進行状況をタイマーに応じて変更（例: 0-60秒で進行する）
+                double progress = Math.min(1.0, 600.0 - (time / 600.0));  // 最大60秒でフルバーにする
+                bossBar.setProgress(progress);
+            }
+        }.runTaskTimer(this, 0L, 20L); // 0L は初回の遅延、20L は20ティック(1秒)間隔
     }
 }

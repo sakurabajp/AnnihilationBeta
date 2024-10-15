@@ -5,3 +5,5 @@ api-version: '1.16'
 commands:
   anni:
     description: anni start
+  nexus:
+    description: anni nexus hp add
