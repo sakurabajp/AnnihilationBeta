@@ -4,8 +4,8 @@ import org.bukkit.event.Listener;
 
 public class Nexus implements Listener {
 
-    public int RedNexus = 0;
-    public int BlueNexus = 0;
-    public int YellowNexus = 0;
-    public int GreenNexus = 0;
+    int RedNexus = 0;
+    int BlueNexus = 0;
+    int YellowNexus = 0;
+    int GreenNexus = 0;
 }
