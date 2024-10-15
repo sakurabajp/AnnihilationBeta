@@ -2,3 +2,6 @@ name: Annihilation-Beta3
 version: '${project.version}'
 main: net.cherryleaves.annihilationbeta3.Annihilation_Beta3
 api-version: '1.16'
+commands:
+  anni:
+    description: anni start

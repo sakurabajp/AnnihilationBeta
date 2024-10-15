@@ -1,10 +1,9 @@
 package net.cherryleaves.annihilationbeta3;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,9 +16,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
-import org.bukkit.scoreboard.Team;
+import org.bukkit.scoreboard.*;
 
 import java.util.Objects;
 
@@ -30,6 +27,7 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
         Bukkit.getServer().getPluginManager().registerEvents(this, this);
         Bukkit.getServer().getPluginManager().registerEvents(new GUI(), this);
         CreateTeam();
+        Objects.requireNonNull(getCommand("anni")).setExecutor(this);
         super.onEnable();
     }
 
@@ -45,6 +43,17 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
     String FF = ChatColor.WHITE + "Fly hack item";
     String FS = ChatColor.YELLOW + "Click to join an event";
 
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("anni")) {
+            if (!(sender instanceof Player) || !sender.isOp()) {
+                sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
+                return true;
+            }
+            StartAnni();
+        }
+        return false;
+    }
 
     @EventHandler
     public void onPlayerJoinEvent(PlayerJoinEvent e){
@@ -177,6 +186,40 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
             yellow.setPrefix(ChatColor.YELLOW.toString());
             yellow.setColor(ChatColor.YELLOW);
             yellow.setAllowFriendlyFire(false);
+        }
+    }
+
+    String none = "";
+
+    public void StartAnni(){
+        new Nexus().RedNexus = 75;
+        new Nexus().BlueNexus = 75;
+        new Nexus().YellowNexus = 75;
+        new Nexus().GreenNexus = 75;
+        ScoreboardManager managerTime = Bukkit.getScoreboardManager();
+        Scoreboard boardTime = Objects.requireNonNull(managerTime).getNewScoreboard();
+        Objective objectiveT = boardTime.registerNewObjective("NexusHP", "dummy", ChatColor.RED + " ANNI" + ChatColor.YELLOW + "HI" + ChatColor.BLUE + "LATI" + ChatColor.GREEN + "ON ");
+        Objects.requireNonNull(objectiveT).setDisplaySlot(DisplaySlot.SIDEBAR);
+        Score score8 = Objects.requireNonNull(objectiveT).getScore(none);
+        score8.setScore(8);
+        Score score7 = Objects.requireNonNull(objectiveT).getScore(ChatColor.GOLD + "Map: Korustal");
+        score7.setScore(7);
+        Score score6 = Objects.requireNonNull(objectiveT).getScore(ChatColor.DARK_GREEN + none);
+        score6.setScore(6);
+        Score score5 = Objects.requireNonNull(objectiveT).getScore(ChatColor.RED + "RedNexus: " + ChatColor.AQUA + new Nexus().RedNexus);
+        score5.setScore(5);
+        Score score4 = Objects.requireNonNull(objectiveT).getScore(ChatColor.BLUE + "BlueNexus: " + ChatColor.AQUA + new Nexus().BlueNexus);
+        score4.setScore(4);
+        Score score3 = Objects.requireNonNull(objectiveT).getScore(ChatColor.YELLOW + "YellowNexus: " + ChatColor.AQUA + new Nexus().YellowNexus);
+        score3.setScore(3);
+        Score score2 = Objects.requireNonNull(objectiveT).getScore(ChatColor.GREEN + "GreenNexus: " + ChatColor.GREEN + new Nexus().GreenNexus);
+        score2.setScore(2);
+        Score score1 = Objects.requireNonNull(objectiveT).getScore(ChatColor.RED + none);
+        score1.setScore(1);
+        Score score0 = Objects.requireNonNull(objectiveT).getScore(ChatColor.GOLD + "mc.cherry-leaves.net");
+        score0.setScore(0);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.setScoreboard(boardTime);
         }
     }
 }
