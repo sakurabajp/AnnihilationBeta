@@ -32,6 +32,10 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
 
     public BossBar bossBar;
     public int time;
+    public int time2;
+    public int timeS;
+    public int timeM;
+    public int phase;
 
     int RedNexus = 75;
     int BlueNexus = 75;
@@ -302,7 +306,7 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
 
     public void setupBossBar() {
         // ボスバーを作成（タイトル、色、スタイルを設定）
-        bossBar = Bukkit.createBossBar(ChatColor.GREEN + "Timer: 0s", BarColor.BLUE, BarStyle.SOLID);
+        bossBar = Bukkit.createBossBar(ChatColor.GREEN + "Please wait a start command in admin", BarColor.BLUE, BarStyle.SOLID);
         // 全プレイヤーにボスバーを表示
         for (Player player : Bukkit.getOnlinePlayers()) {
             bossBar.addPlayer(player);
@@ -312,23 +316,36 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
     public void startTimer() {
         // 初期時間を0に設定
         time = 0;
+        phase = 1;
+        timeM = 0;
+        double progress = Math.min(1.0, 600.0);  // 最大60秒でフルバーにする
+        bossBar.setProgress(progress);
         // 1秒ごとに実行されるタスク
         new BukkitRunnable() {
             @Override
             public void run() {
                 // 時間を1秒増加
                 time++;
+                time2 = 600 - time;
+                timeM = (int) time2 / 60;
+                timeS = time2 - (timeM * 60);
                 // ボスバーのタイトルを更新（経過秒数を表示）
-                bossBar.setTitle(ChatColor.GREEN + "Timer: " + time + "s");
+                if(timeS >= 10) {
+                    bossBar.setTitle(ChatColor.WHITE + "Phase: " + phase + " - " + timeM + ":" + timeS + "s");
+                }
+                if(timeS <= 9) {
+                    bossBar.setTitle(ChatColor.WHITE + "Phase: " + phase + " - " + timeM + ":0" + timeS + "s");
+                }
                 // 全プレイヤーにボスバーを表示（サーバーに新しいプレイヤーが参加した場合も更新）
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     if (!bossBar.getPlayers().contains(player)) {
                         bossBar.addPlayer(player);
                     }
                 }
-                // オプション: ボスバーの進行状況をタイマーに応じて変更（例: 0-60秒で進行する）
-                double progress = Math.min(1.0, 600.0 - (time / 600.0));  // 最大60秒でフルバーにする
-                bossBar.setProgress(progress);
+                if(time >= 600){
+                    time = 0;
+                    phase++;
+                }
             }
         }.runTaskTimer(this, 0L, 20L); // 0L は初回の遅延、20L は20ティック(1秒)間隔
     }
