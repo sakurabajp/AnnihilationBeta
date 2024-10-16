@@ -239,34 +239,34 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
         if (red == null) {
             // チームが存在しない場合、新しく作成
             red = scoreboard.registerNewTeam("red");
-            red.setPrefix(ChatColor.RED.toString());
-            red.setColor(ChatColor.RED);
-            red.setAllowFriendlyFire(false);
         }
+        red.setPrefix(ChatColor.RED.toString());
+        red.setColor(ChatColor.RED);
+        red.setAllowFriendlyFire(false);
         Team blue = scoreboard.getTeam("blue");
         if (blue == null) {
             // チームが存在しない場合、新しく作成
             blue = scoreboard.registerNewTeam("blue");
-            blue.setPrefix(ChatColor.BLUE.toString());
-            blue.setColor(ChatColor.BLUE);
-            blue.setAllowFriendlyFire(false);
         }
+        blue.setPrefix(ChatColor.BLUE.toString());
+        blue.setColor(ChatColor.BLUE);
+        blue.setAllowFriendlyFire(false);
         Team green = scoreboard.getTeam("green");
         if (green == null) {
             // チームが存在しない場合、新しく作成
             green = scoreboard.registerNewTeam("green");
-            green.setPrefix(ChatColor.GREEN.toString());
-            green.setColor(ChatColor.GREEN);
-            green.setAllowFriendlyFire(false);
         }
+        green.setPrefix(ChatColor.GREEN.toString());
+        green.setColor(ChatColor.GREEN);
+        green.setAllowFriendlyFire(false);
         Team yellow = scoreboard.getTeam("yellow");
         if (yellow == null) {
             // チームが存在しない場合、新しく作成
             yellow = scoreboard.registerNewTeam("yellow");
-            yellow.setPrefix(ChatColor.YELLOW.toString());
-            yellow.setColor(ChatColor.YELLOW);
-            yellow.setAllowFriendlyFire(false);
         }
+        yellow.setPrefix(ChatColor.YELLOW.toString());
+        yellow.setColor(ChatColor.YELLOW);
+        yellow.setAllowFriendlyFire(false);
     }
 
     String none = "";
@@ -278,6 +278,7 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
         Team blue = scoreboard.getTeam("blue");
         Team green = scoreboard.getTeam("green");
         Team yellow = scoreboard.getTeam("yellow");
+        CreateTeam();
     }
 
     public void StartAnniScoreBoard(){
