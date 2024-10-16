@@ -325,26 +325,31 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
             @Override
             public void run() {
                 // 時間を1秒増加
-                time++;
-                time2 = 600 - time;
-                timeM = (int) time2 / 60;
-                timeS = time2 - (timeM * 60);
-                // ボスバーのタイトルを更新（経過秒数を表示）
-                if(timeS >= 10) {
-                    bossBar.setTitle(ChatColor.WHITE + "Phase: " + phase + " - " + timeM + ":" + timeS + "s");
-                }
-                if(timeS <= 9) {
-                    bossBar.setTitle(ChatColor.WHITE + "Phase: " + phase + " - " + timeM + ":0" + timeS + "s");
-                }
-                // 全プレイヤーにボスバーを表示（サーバーに新しいプレイヤーが参加した場合も更新）
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     if (!bossBar.getPlayers().contains(player)) {
                         bossBar.addPlayer(player);
                     }
                 }
-                if(time >= 600){
-                    time = 0;
-                    phase++;
+                time++;
+                if(phase <= 4) {
+                    time2 = 600 - time;
+                    timeM = (int) time2 / 60;
+                    timeS = time2 - (timeM * 60);
+                    // ボスバーのタイトルを更新（経過秒数を表示）
+                    if (timeS >= 10) {
+                        bossBar.setTitle(ChatColor.WHITE + "Phase: " + phase + " - " + timeM + ":" + timeS + "s");
+                    }
+                    if (timeS <= 9) {
+                        bossBar.setTitle(ChatColor.WHITE + "Phase: " + phase + " - " + timeM + ":0" + timeS + "s");
+                    }
+                    // 全プレイヤーにボスバーを表示（サーバーに新しいプレイヤーが参加した場合も更新）
+                    if (time >= 600) {
+                        time = 0;
+                        phase++;
+                    }
+                }
+                else{
+                    bossBar.setTitle(ChatColor.WHITE + "Phase: 5 - " + ChatColor.RED + "DOUBLE" + ChatColor.WHITE + " Nexus Damage");
                 }
             }
         }.runTaskTimer(this, 0L, 20L); // 0L は初回の遅延、20L は20ティック(1秒)間隔
