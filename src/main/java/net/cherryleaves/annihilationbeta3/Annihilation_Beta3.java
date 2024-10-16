@@ -272,8 +272,12 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
     String none = "";
 
     public void StartAnni(){
-        ScoreboardManager managerTime = Bukkit.getScoreboardManager();
-        Scoreboard boardTime = Objects.requireNonNull(managerTime).getNewScoreboard();
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        Scoreboard scoreboard = Objects.requireNonNull(manager).getMainScoreboard();
+        Team red = scoreboard.getTeam("red");
+        Team blue = scoreboard.getTeam("blue");
+        Team green = scoreboard.getTeam("green");
+        Team yellow = scoreboard.getTeam("yellow");
     }
 
     public void StartAnniScoreBoard(){
@@ -324,12 +328,13 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                // 時間を1秒増加
+                // 全プレイヤーにボスバーを表示（サーバーに新しいプレイヤーが参加した場合も更新）
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     if (!bossBar.getPlayers().contains(player)) {
                         bossBar.addPlayer(player);
                     }
                 }
+                // 時間を1秒増加
                 time++;
                 if(phase <= 4) {
                     time2 = 600 - time;
@@ -342,10 +347,13 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
                     if (timeS <= 9) {
                         bossBar.setTitle(ChatColor.WHITE + "Phase: " + phase + " - " + timeM + ":0" + timeS + "s");
                     }
-                    // 全プレイヤーにボスバーを表示（サーバーに新しいプレイヤーが参加した場合も更新）
                     if (time >= 600) {
                         time = 0;
                         phase++;
+                        bossBar.setTitle(ChatColor.WHITE + "Phase: " + phase + 1 + " - " + "10:00");
+                        for(Player p : Bukkit.getOnlinePlayers()){
+                            p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 1);
+                        }
                     }
                 }
                 else{
