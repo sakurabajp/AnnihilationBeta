@@ -46,9 +46,11 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
     public void onEnable() {
         Bukkit.getServer().getPluginManager().registerEvents(this, this);
         Bukkit.getServer().getPluginManager().registerEvents(new GUI(), this);
+        Bukkit.getServer().getPluginManager().registerEvents(new SetNexus(), this);
         CreateTeam();
         Objects.requireNonNull(getCommand("anni")).setExecutor(this);
         Objects.requireNonNull(getCommand("nexus")).setExecutor(this);
+        Objects.requireNonNull(getCommand("NexusLocation")).setExecutor(this);
         setupBossBar();
         super.onEnable();
     }
@@ -108,6 +110,19 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
                 sender.sendMessage(TeamNexus + "のスコアを" + score + "に設定します。");
                 StartAnni();
                 StartAnniScoreBoard();
+            }
+        }
+        else if (command.getName().equalsIgnoreCase("NexusLocation")) {
+            List<ItemStack> b = new SetNexus().addList();
+            if (!(sender instanceof Player) || !sender.isOp()) {
+                sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
+                return true;
+            }
+            else {
+                for (int i = 0; i < b.size(); i++) {
+                    ((Player) sender).getInventory().addItem(b.get(i));
+                    sender.sendMessage(b.get(i).toString());
+                }
             }
         }
         return false;

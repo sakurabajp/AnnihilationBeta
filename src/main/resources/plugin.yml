@@ -7,3 +7,5 @@ commands:
     description: anni start
   nexus:
     description: anni nexus hp add
+  NexusLocation:
+    description: set nexus
