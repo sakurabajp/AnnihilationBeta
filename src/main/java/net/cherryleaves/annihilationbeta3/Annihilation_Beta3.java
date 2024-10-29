@@ -35,18 +35,19 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
     public int time2;
     public int timeS;
     public int timeM;
-    public int phase;
+    public static int phase;
 
-    int RedNexus = 75;
-    int BlueNexus = 75;
-    int YellowNexus = 75;
-    int GreenNexus = 75;
+    static int RedNexus = 75;
+    static int BlueNexus = 75;
+    static int YellowNexus = 75;
+    static int GreenNexus = 75;
 
     @Override
     public void onEnable() {
         Bukkit.getServer().getPluginManager().registerEvents(this, this);
         Bukkit.getServer().getPluginManager().registerEvents(new GUI(), this);
         Bukkit.getServer().getPluginManager().registerEvents(new SetNexus(), this);
+        Bukkit.getServer().getPluginManager().registerEvents(new NexusBreak(), this);
         CreateTeam();
         Objects.requireNonNull(getCommand("anni")).setExecutor(this);
         Objects.requireNonNull(getCommand("nexus")).setExecutor(this);
@@ -77,8 +78,15 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
                 return true;
             }
-            StartAnniScoreBoard();
+            if (!(time <= 0)) {
+                return true;
+            }
+            new ReloadScoreBoard().StartAnniScoreBoard();
             startTimer();
+            RedNexus = 75;
+             BlueNexus = 75;
+            YellowNexus = 75;
+            GreenNexus = 75;
         }
         else if (command.getName().equalsIgnoreCase("nexus")) {
             if (!(sender instanceof Player) || !sender.isOp()) {
@@ -109,7 +117,7 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
                 }
                 sender.sendMessage(TeamNexus + "のスコアを" + score + "に設定します。");
                 StartAnni();
-                StartAnniScoreBoard();
+                new ReloadScoreBoard().StartAnniScoreBoard();
             }
         }
         else if (command.getName().equalsIgnoreCase("NexusLocation")) {
@@ -150,7 +158,7 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
     public void onPlayerJoinEvent(PlayerJoinEvent e){
         Player p = e.getPlayer();
         if(time > 0) {
-            StartAnniScoreBoard();
+            new ReloadScoreBoard().StartAnniScoreBoard();
             bossBar.addPlayer(p);
         }
         p.teleport(new Location(p.getWorld(), 5000.5, 4.0, 5000.5, 90, 0));
@@ -284,7 +292,7 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
         yellow.setAllowFriendlyFire(false);
     }
 
-    String none = "";
+    static String none = "";
 
     public void StartAnni(){
         ScoreboardManager manager = Bukkit.getScoreboardManager();
@@ -294,34 +302,6 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
         Team green = scoreboard.getTeam("green");
         Team yellow = scoreboard.getTeam("yellow");
         CreateTeam();
-    }
-
-    public void StartAnniScoreBoard(){
-        ScoreboardManager managerTime = Bukkit.getScoreboardManager();
-        Scoreboard boardTime = Objects.requireNonNull(managerTime).getNewScoreboard();
-        Objective objectiveT = boardTime.registerNewObjective("NexusHP", "dummy", ChatColor.RED + " ANNI" + ChatColor.YELLOW + "HI" + ChatColor.BLUE + "LATI" + ChatColor.GREEN + "ON ");
-        Objects.requireNonNull(objectiveT).setDisplaySlot(DisplaySlot.SIDEBAR);
-        Score score8 = Objects.requireNonNull(objectiveT).getScore(none);
-        score8.setScore(8);
-        Score score7 = Objects.requireNonNull(objectiveT).getScore(ChatColor.GOLD + "Map: " + ChatColor.BOLD + "Korustal");
-        score7.setScore(7);
-        Score score6 = Objects.requireNonNull(objectiveT).getScore(ChatColor.DARK_GREEN + none);
-        score6.setScore(6);
-        Score score5 = Objects.requireNonNull(objectiveT).getScore(ChatColor.RED + "Red Nexus: " + ChatColor.AQUA + RedNexus);
-        score5.setScore(5);
-        Score score4 = Objects.requireNonNull(objectiveT).getScore(ChatColor.BLUE + "Blue Nexus: " + ChatColor.AQUA + BlueNexus);
-        score4.setScore(4);
-        Score score3 = Objects.requireNonNull(objectiveT).getScore(ChatColor.YELLOW + "Yellow Nexus: " + ChatColor.AQUA + YellowNexus);
-        score3.setScore(3);
-        Score score2 = Objects.requireNonNull(objectiveT).getScore(ChatColor.GREEN + "Green Nexus: " + ChatColor.AQUA + GreenNexus);
-        score2.setScore(2);
-        Score score1 = Objects.requireNonNull(objectiveT).getScore(ChatColor.RED + none);
-        score1.setScore(1);
-        Score score0 = Objects.requireNonNull(objectiveT).getScore(ChatColor.GOLD + "mc.cherry-leaves.net");
-        score0.setScore(0);
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            player.setScoreboard(boardTime);
-        }
     }
 
     public void setupBossBar() {
@@ -336,7 +316,7 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
     public void startTimer() {
         // 初期時間を0に設定
         time = 0;
-        phase = 1;
+        phase = 2;
         timeM = 0;
         double progress = Math.min(1.0, 600.0);  // 最大60秒でフルバーにする
         bossBar.setProgress(progress);
@@ -376,6 +356,6 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
                     bossBar.setTitle(ChatColor.WHITE + "Phase: 5 - " + ChatColor.RED + "DOUBLE" + ChatColor.WHITE + " Nexus Damage");
                 }
             }
-        }.runTaskTimer(this, 0L, 20L); // 0L は初回の遅延、20L は20ティック(1秒)間隔
+        }.runTaskTimer(this, 0L, 1L); // 0L は初回の遅延、20L は20ティック(1秒)間隔
     }
 }

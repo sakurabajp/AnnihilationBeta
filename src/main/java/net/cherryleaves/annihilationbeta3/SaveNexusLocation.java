@@ -55,4 +55,13 @@ public class SaveNexusLocation {
         }
         return null; // 読み込み失敗時の処理
     }
+
+    public static Location loadLocationFromYaml2(File file, String path) {
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        String locationString = config.getString(path);
+        if (locationString != null) {
+            return stringToLocation(locationString);
+        }
+        return null; // 読み込み失敗時の処理
+    }
 }
