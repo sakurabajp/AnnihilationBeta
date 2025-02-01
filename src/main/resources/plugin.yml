@@ -9,3 +9,5 @@ commands:
     description: anni nexus hp add
   NexusLocation:
     description: set nexus
+  RespawnLocation:
+    description: set respawn

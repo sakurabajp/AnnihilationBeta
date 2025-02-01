@@ -7,10 +7,12 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -20,13 +22,17 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scoreboard.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static java.awt.Color.red;
 
 public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
 
@@ -48,6 +54,8 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
         Bukkit.getServer().getPluginManager().registerEvents(new GUI(), this);
         Bukkit.getServer().getPluginManager().registerEvents(new SetNexus(), this);
         Bukkit.getServer().getPluginManager().registerEvents(new NexusBreak(), this);
+        Bukkit.getServer().getPluginManager().registerEvents(new NetherGate(this), this);
+        Bukkit.getServer().getPluginManager().registerEvents(new Respawn(), this);
         CreateTeam();
         Objects.requireNonNull(getCommand("anni")).setExecutor(this);
         Objects.requireNonNull(getCommand("nexus")).setExecutor(this);
@@ -84,11 +92,10 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
             new ReloadScoreBoard().StartAnniScoreBoard();
             startTimer();
             RedNexus = 75;
-             BlueNexus = 75;
+            BlueNexus = 75;
             YellowNexus = 75;
             GreenNexus = 75;
-        }
-        else if (command.getName().equalsIgnoreCase("nexus")) {
+        } else if (command.getName().equalsIgnoreCase("nexus")) {
             if (!(sender instanceof Player) || !sender.isOp()) {
                 sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
                 return true;
@@ -100,18 +107,22 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
             if (args.length >= 2) {
                 String TeamNexus = args[0];  // 1番目の引数
                 try {
-                    Integer.parseInt(args[1]); {
+                    Integer.parseInt(args[1]);
+                    {
                     }
-                }
-                catch (NumberFormatException e) {
+                } catch (NumberFormatException e) {
                     sender.sendMessage("２つ目の引数に整数以外を打たないでください");
                 }
                 int score = Integer.parseInt(args[1]);  // 2番目の引数
-                if(Objects.equals(TeamNexus, "Red")) {RedNexus = score; }
-                else if(Objects.equals(TeamNexus, "Blue")) {BlueNexus = score;}
-                else if(Objects.equals(TeamNexus, "Yellow")) {YellowNexus = score;}
-                else if(Objects.equals(TeamNexus, "Green")) {GreenNexus = score;}
-                else{
+                if (Objects.equals(TeamNexus, "Red")) {
+                    RedNexus = score;
+                } else if (Objects.equals(TeamNexus, "Blue")) {
+                    BlueNexus = score;
+                } else if (Objects.equals(TeamNexus, "Yellow")) {
+                    YellowNexus = score;
+                } else if (Objects.equals(TeamNexus, "Green")) {
+                    GreenNexus = score;
+                } else {
                     sender.sendMessage("1つめの引数にRed, Blue, Yellow, Green, 以外の文字列を打たないでください");
                     return false;
                 }
@@ -119,14 +130,23 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
                 StartAnni();
                 new ReloadScoreBoard().StartAnniScoreBoard();
             }
-        }
-        else if (command.getName().equalsIgnoreCase("NexusLocation")) {
+        } else if (command.getName().equalsIgnoreCase("NexusLocation")) {
             List<ItemStack> b = new SetNexus().addList();
             if (!(sender instanceof Player) || !sender.isOp()) {
                 sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
                 return true;
+            } else {
+                for (int i = 0; i < b.size(); i++) {
+                    ((Player) sender).getInventory().addItem(b.get(i));
+                    sender.sendMessage(b.get(i).toString());
+                }
             }
-            else {
+        } else if (command.getName().equalsIgnoreCase("RespawnLocation")) {
+            List<ItemStack> b = new Respawn().addList();
+            if (!(sender instanceof Player) || !sender.isOp()) {
+                sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
+                return true;
+            } else {
                 for (int i = 0; i < b.size(); i++) {
                     ((Player) sender).getInventory().addItem(b.get(i));
                     sender.sendMessage(b.get(i).toString());
@@ -155,9 +175,9 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoinEvent(PlayerJoinEvent e){
+    public void onPlayerJoinEvent(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        if(time > 0) {
+        if (time > 0) {
             new ReloadScoreBoard().StartAnniScoreBoard();
             bossBar.addPlayer(p);
         }
@@ -166,12 +186,12 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
         p.sendMessage(ChatColor.GREEN + "Welcome back " + ChatColor.YELLOW + p.getDisplayName() + ChatColor.GREEN + ", You are currently the rank of...");
         Inventory pe = p.getInventory();
         pe.clear();
-        pe.setItem(0, new GUI().ItemMeta(Material.COMPASS,  FC));
-        pe.setItem(1, new GUI().ItemMeta(Material.BLAZE_ROD,  FB));
-        pe.setItem(4, new GUI().ItemMeta(Material.BLACK_SHULKER_BOX,  FSB));
-        pe.setItem(6, new GUI().ItemMeta(Material.CAKE,  FCA));
-        pe.setItem(7, new GUI().ItemMeta(Material.FEATHER,  FF));
-        pe.setItem(8, new GUI().ItemMeta(Material.SAND,  FS));
+        pe.setItem(0, new GUI().ItemMeta(Material.COMPASS, FC));
+        pe.setItem(1, new GUI().ItemMeta(Material.BLAZE_ROD, FB));
+        pe.setItem(4, new GUI().ItemMeta(Material.BLACK_SHULKER_BOX, FSB));
+        pe.setItem(6, new GUI().ItemMeta(Material.CAKE, FCA));
+        pe.setItem(7, new GUI().ItemMeta(Material.FEATHER, FF));
+        pe.setItem(8, new GUI().ItemMeta(Material.SAND, FS));
     }
 
     @EventHandler
@@ -180,11 +200,11 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onItemClickEvent(PlayerInteractEvent e){
+    public void onItemClickEvent(PlayerInteractEvent e) {
         Player p = e.getPlayer();
         Action action = e.getAction();
         Block b = e.getClickedBlock();
-        if(e.getItem() == null || e.getItem().getItemMeta() == null){
+        if (e.getItem() == null || e.getItem().getItemMeta() == null) {
             return;
         } else {
             e.getItem().getItemMeta().getDisplayName();
@@ -196,45 +216,36 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
             if (itemInHand.getType().isAir()) {
                 return;
             }
-            if(j.equals(FC) && t.equals(Material.COMPASS)){
+            if (j.equals(FC) && t.equals(Material.COMPASS)) {
                 new GUI().JoinGame(p);
                 e.setCancelled(true);
-            }
-            else if(j.equals(FB) && t.equals(Material.BLAZE_ROD)){
+            } else if (j.equals(FB) && t.equals(Material.BLAZE_ROD)) {
                 p.sendMessage(ChatColor.GRAY + "実装する気ないよ(笑)");
                 e.setCancelled(true);
-            }
-            else if(j.equals(FSB) && t.equals(Material.BLACK_SHULKER_BOX)){
+            } else if (j.equals(FSB) && t.equals(Material.BLACK_SHULKER_BOX)) {
                 new GUI().Swag(p);
                 e.setCancelled(true);
-            }
-            else if(j.equals(FCA) && t.equals(Material.CAKE)){
+            } else if (j.equals(FCA) && t.equals(Material.CAKE)) {
                 p.sendMessage(ChatColor.GRAY + "実装する気ないよ(笑)");
                 e.setCancelled(true);
-            }
-            else if(j.equals(FF) && t.equals(Material.FEATHER)){
-                if(p.getAllowFlight()) {
+            } else if (j.equals(FF) && t.equals(Material.FEATHER)) {
+                if (p.getAllowFlight()) {
                     p.setAllowFlight(false);
                     p.sendMessage(ChatColor.RED + "Disallow Flight");
-                }
-                else if(!p.getAllowFlight()){
+                } else if (!p.getAllowFlight()) {
                     p.setAllowFlight(true);
                     p.sendMessage(ChatColor.GREEN + "Allow Flight");
                 }
-            }
-            else if(j.equals(FS) && t.equals(Material.SAND)){
+            } else if (j.equals(FS) && t.equals(Material.SAND)) {
                 p.sendMessage(ChatColor.GRAY + "要らんやろこれ");
                 e.setCancelled(true);
-            }
-            else if(j.equals(ChatColor.GOLD + "Select Team") && t.equals(Material.NETHER_STAR)){
+            } else if (j.equals(ChatColor.GOLD + "Select Team") && t.equals(Material.NETHER_STAR)) {
                 new GUI().SelectTeam(p);
                 e.setCancelled(true);
-            }
-            else if(j.equals(ChatColor.AQUA + "Select Map") && t.equals(Material.MAP)){
+            } else if (j.equals(ChatColor.AQUA + "Select Map") && t.equals(Material.MAP)) {
                 new GUI().SelectMap(p);
                 e.setCancelled(true);
-            }
-            else if(j.equals(ChatColor.AQUA + "Select Class") && t.equals(Material.FEATHER)){
+            } else if (j.equals(ChatColor.AQUA + "Select Class") && t.equals(Material.FEATHER)) {
                 new SelectClass().ClassList(p);
                 e.setCancelled(true);
             }
@@ -242,19 +253,19 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerDropItem(PlayerDropItemEvent e){
+    public void onPlayerDropItem(PlayerDropItemEvent e) {
         ItemStack i = e.getItemDrop().getItemStack();
         ItemMeta im = i.getItemMeta();
         String imd = Objects.requireNonNull(im).getDisplayName();
-        if(imd.equals(FB) || imd.equals(FC) || imd.equals(FF) || imd.equals(FCA) || imd.equals(FSB) || imd.equals(FS)){
+        if (imd.equals(FB) || imd.equals(FC) || imd.equals(FF) || imd.equals(FCA) || imd.equals(FSB) || imd.equals(FS)) {
             e.setCancelled(true);
         }
-        if(imd.equals(new GUI().FF) || imd.equals(new GUI().FB) || imd.equals(new GUI().FN) || imd.equals(new GUI().FM)){
+        if (imd.equals(new GUI().FF) || imd.equals(new GUI().FB) || imd.equals(new GUI().FN) || imd.equals(new GUI().FM)) {
             e.setCancelled(true);
         }
     }
 
-    public void CreateTeam(){
+    public void CreateTeam() {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         Scoreboard scoreboard = Objects.requireNonNull(manager).getMainScoreboard();
 
@@ -294,7 +305,7 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
 
     static String none = "";
 
-    public void StartAnni(){
+    public void StartAnni() {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         Scoreboard scoreboard = Objects.requireNonNull(manager).getMainScoreboard();
         Team red = scoreboard.getTeam("red");
@@ -332,7 +343,7 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
                 }
                 // 時間を1秒増加
                 time++;
-                if(phase <= 4) {
+                if (phase <= 4) {
                     time2 = 600 - time;
                     timeM = (int) time2 / 60;
                     timeS = time2 - (timeM * 60);
@@ -347,15 +358,53 @@ public final class Annihilation_Beta3 extends JavaPlugin implements Listener {
                         time = 0;
                         phase++;
                         bossBar.setTitle(ChatColor.WHITE + "Phase: " + phase + 1 + " - " + "10:00");
-                        for(Player p : Bukkit.getOnlinePlayers()){
-                            p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 1);
+                        for (Player p : Bukkit.getOnlinePlayers()) {
+                            p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.5F, 1);
                         }
                     }
-                }
-                else{
+                } else {
                     bossBar.setTitle(ChatColor.WHITE + "Phase: 5 - " + ChatColor.RED + "DOUBLE" + ChatColor.WHITE + " Nexus Damage");
                 }
             }
-        }.runTaskTimer(this, 0L, 1L); // 0L は初回の遅延、20L は20ティック(1秒)間隔
+        }.runTaskTimer(this, 0L, 20L); // 0L は初回の遅延、20L は20ティック(1秒)間隔
+    }
+
+    @EventHandler
+    public void onPlayerDeathEvent(PlayerDeathEvent e) {
+        Player p = e.getEntity();
+        p.getInventory().clear();
+        p.getInventory().setArmorContents(null);
+        Scoreboard scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getMainScoreboard();
+        // プレイヤー名から所属チームを取得
+        Team team = scoreboard.getEntryTeam(p.getName());
+        File File = new File("RespawnLocation/main.yml");
+        if (Objects.equals(Objects.requireNonNull(team).getName(), "red")) {
+            Location l = Objects.requireNonNull(SaveNexusLocation.loadLocationFromYaml(File, "RedRespawn"));
+            BukkitScheduler scheduler = Bukkit.getScheduler();
+            scheduler.runTaskLater(this, () -> {
+                p.teleport(l);
+            }, 0L);
+        }
+        if (Objects.equals(Objects.requireNonNull(team).getName(), "blue")) {
+            Location l = SaveNexusLocation.loadLocationFromYaml(File, "BlueRespawn");
+            BukkitScheduler scheduler = Bukkit.getScheduler();
+            scheduler.runTaskLater(this, () -> {
+                p.teleport(l);
+            }, 0L);
+        }
+        if (Objects.equals(Objects.requireNonNull(team).getName(), "yellow")) {
+            Location l = SaveNexusLocation.loadLocationFromYaml(File, "YellowRespawn");
+            BukkitScheduler scheduler = Bukkit.getScheduler();
+            scheduler.runTaskLater(this, () -> {
+                p.teleport(l);
+            }, 0L);
+        }
+        if (Objects.equals(Objects.requireNonNull(team).getName(), "green")) {
+            Location l = SaveNexusLocation.loadLocationFromYaml(File, "GreenRespawn");
+            BukkitScheduler scheduler = Bukkit.getScheduler();
+            scheduler.runTaskLater(this, () -> {
+                p.teleport(l);
+            }, 0L);
+        }
     }
 }

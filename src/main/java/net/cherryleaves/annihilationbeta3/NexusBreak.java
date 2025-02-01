@@ -1,10 +1,13 @@
 package net.cherryleaves.annihilationbeta3;
 
 import org.bukkit.*;
+import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.util.Objects;
@@ -19,9 +22,21 @@ public class NexusBreak implements Listener {
         Player p = e.getPlayer();
         Material m = e.getBlock().getType();
         Location l = e.getBlock().getLocation();
-        int a = Annihilation_Beta3.phase;
+        int a = phase;
         File File = new File("NexusLocation/main.yml");
         if(m.equals(Material.END_STONE)){
+            ItemStack mainHandItem = p.getInventory().getItemInMainHand();
+            if (mainHandItem.getType() != Material.AIR) {
+                // メインハンドのアイテムを取得
+                ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
+                // アイテムが存在し、AIRではない場合のみ処理
+                if (item.getType() == Material.AIR) {
+                    return;
+                }
+                // 耐久値を1増やす (実質的にはアイテムの耐久値を1減らす動作)
+                short durability = item.getDurability();
+                item.setDurability((short) (durability + 1));
+            }
             if(l.equals(SaveNexusLocation.loadLocationFromYaml(File, "RedNexus"))){
                 e.setCancelled(true);
                 if(a >= 2 && a <=4){
